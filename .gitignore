@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+halp.so
+halp.dylib
+halp.dll
+halp.a
+halp.lib
+halp-test-*
+*.exe
+*.o
+*.obj
+*.lst
+halp
