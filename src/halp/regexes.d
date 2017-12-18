@@ -110,3 +110,81 @@ unittest
     matches = `⟨foo⟩`.matchFirst(re);
     assert(matches.empty);
 }
+
+private enum validFlagCharacters = `[a-zA-Z0-9_]`;
+private enum oneFlag = validFlagCharacters ~ `+`;
+private enum flagSeparator = `[\s]*,[\s]*`;
+private enum flagList = `([\s]*(?:` ~ oneFlag ~ `(?:` ~ flagSeparator ~ oneFlag ~ `)*)?[\s]*)`;
+
+unittest
+{
+    auto re = ctRegex!("^" ~ flagList ~ "$");
+
+    // Empty list
+    auto input = "";
+    auto matches = input.matchFirst(re);
+    assert(!matches.empty);
+    assert(matches[1] == input);
+
+    // One flag
+    input = "myFlag";
+    matches = input.matchFirst(re);
+    assert(!matches.empty);
+    assert(matches[1] == input);
+
+    // One flag, with underscore and extra spaces
+    input = "   my_flag ";
+    matches = input.matchFirst(re);
+    assert(!matches.empty);
+    assert(matches[1] == input);
+
+    // Two flags, different variations
+    input = "flag1,flag2";
+    matches = input.matchFirst(re);
+    assert(!matches.empty);
+    assert(matches[1] == input);
+
+    input = "flag_1, flag2";
+    matches = input.matchFirst(re);
+    assert(!matches.empty);
+    assert(matches[1] == input);
+
+    input = "  flag_1   , flag_2";
+    matches = input.matchFirst(re);
+    assert(!matches.empty);
+    assert(matches[1] == input);
+
+    input = "flag1,  flag_2   ";
+    matches = input.matchFirst(re);
+    assert(!matches.empty);
+    assert(matches[1] == input);
+
+    // Longer list
+    input = "abc, cDe,xyz   , _foo  ,BAR,_baz   ";
+    matches = input.matchFirst(re);
+    assert(!matches.empty);
+    assert(matches[1] == input);
+
+    // Cannot start by comma
+    input = ",flag";
+    matches = input.matchFirst(re);
+    assert(matches.empty);
+
+    // Comma is required to separate flags
+    input = "flag1 flag2";
+    matches = input.matchFirst(re);
+    assert(matches.empty);
+
+    // Funny characters are invalid
+    input = "flag.";
+    matches = input.matchFirst(re);
+    assert(matches.empty);
+
+    input = "fla&g";
+    matches = input.matchFirst(re);
+    assert(matches.empty);
+
+    input = "flég";
+    matches = input.matchFirst(re);
+    assert(matches.empty);
+}
