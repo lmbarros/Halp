@@ -67,13 +67,37 @@ unittest
     assert(matches.empty);
 }
 
+/// Regex matching a file block.
+public auto fileDefinitionRegex =
+    ctRegex!(`^\s*⟨\s*` ~ filePath ~ `\s*⟩\s*` ~ blockDefinitionOperators ~ `\s*$`);
 
+unittest
+{
+    // Normal case
+    auto matches = "⟨file:foo.ext⟩ =".matchFirst(fileDefinitionRegex);
+    assert(!matches.empty);
+    assert(matches["fileName"] == "foo.ext");
+    assert(matches["blockDefOp"] == "=");
+
+    // Appending, more complex path
+    matches = "⟨file:../dir/foo.ext⟩ +=".matchFirst(fileDefinitionRegex);
+    assert(!matches.empty);
+    assert(matches["fileName"] == "../dir/foo.ext");
+    assert(matches["blockDefOp"] == "+=");
+
+    // Going wild with spaces
+    matches = " ⟨   file:   ../dir/foo.ext  ⟩   = ".matchFirst(fileDefinitionRegex);
+    assert(!matches.empty);
+    assert(matches["fileName"] == "../dir/foo.ext");
+    assert(matches["blockDefOp"] == "=");
+}
 
 
 // Building blocks for the public regexes
 
 private enum validFileNameChars = `[a-zA-Z0-9 _./]`;
-private enum filePath = `file:(?P<fileName>` ~ validFileNameChars ~ `+)`;
+private enum validFileNameCharsButNotSpace = `[a-zA-Z0-9_./]`;
+private enum filePath = `file:\s*(?P<fileName>` ~ validFileNameChars ~ `*` ~ validFileNameCharsButNotSpace ~`)\s*`;
 
 unittest
 {
