@@ -28,23 +28,23 @@ unittest
     assert(!matches.empty);
     assert(matches[1] == input);
 
-    // Spaces and dots and relative paths are ok
+    // Spaces and dots and relative paths are OK
     input = "../path with spaces/file.with.dotted.name";
     matches = input.matchFirst(re);
     assert(!matches.empty);
     assert(matches[1] == input);
 
     // Invalid characters
-    matches = "/file*ext".matchFirst(re);
+    matches = "file*ext".matchFirst(re);
     assert(matches.empty);
 
-    matches = "/file,ext".matchFirst(re);
+    matches = "file,ext".matchFirst(re);
     assert(matches.empty);
 
-    matches = "/file!ext".matchFirst(re);
+    matches = "file!ext".matchFirst(re);
     assert(matches.empty);
 
-    matches = "/file?ext".matchFirst(re);
+    matches = "file?ext".matchFirst(re);
     assert(matches.empty);
 }
 
