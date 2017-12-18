@@ -4,52 +4,130 @@ module halp.regexes;
 
 import std.regex;
 
-public auto blockDefinition = ctRegex!(`[\s]*⟨` ~ blockName ~ `⟩`);
+/// Regex matching a (regular, non file) block definition.
+public auto blockDefinitionRegex =
+    ctRegex!(`^\s*⟨\s*` ~ blockName ~ `\s*⟩\s*` ~ blockDefinitionOperators ~ `\s*$`);
+
+unittest
+{
+    // Normal case
+    auto matches = "⟨Program that does stuff⟩ =".matchFirst(blockDefinitionRegex);
+    assert(!matches.empty);
+    assert(matches["blockName"] == "Program that does stuff");
+    assert(matches["blockDefOp"] == "=");
+
+    // No space before the `=` is OK
+    matches = "⟨S'mth'ng⟩=".matchFirst(blockDefinitionRegex);
+    assert(!matches.empty);
+    assert(matches["blockName"] == "S'mth'ng");
+    assert(matches["blockDefOp"] == "=");
+
+    // Additional spaces are ignored
+    matches = "  ⟨   Program that does stuff   ⟩  =     ".matchFirst(blockDefinitionRegex);
+    assert(!matches.empty);
+    assert(matches["blockName"] == "Program that does stuff");
+    assert(matches["blockDefOp"] == "=");
+
+    // Appending, clean case
+    matches = "⟨Exit cleanly⟩ +=".matchFirst(blockDefinitionRegex);
+    assert(!matches.empty);
+    assert(matches["blockName"] == "Exit cleanly");
+    assert(matches["blockDefOp"] == "+=");
+
+    // Appending, with some extra spacing here and there
+    matches = "⟨ Compute the GCD of `m` and `n`   ⟩+=".matchFirst(blockDefinitionRegex);
+    assert(!matches.empty);
+    assert(matches["blockName"] == "Compute the GCD of `m` and `n`");
+    assert(matches["blockDefOp"] == "+=");
+
+    // Missing brackets
+    matches = "Stuff⟩+=".matchFirst(blockDefinitionRegex);
+    assert(matches.empty);
+
+    matches = "⟨Stuff =".matchFirst(blockDefinitionRegex);
+    assert(matches.empty);
+
+    matches = "Stuff =".matchFirst(blockDefinitionRegex);
+    assert(matches.empty);
+
+    // Missing or invalid operator
+    matches = "⟨Stuff⟩ ".matchFirst(blockDefinitionRegex);
+    assert(matches.empty);
+
+    matches = "⟨Stuff⟩ ++".matchFirst(blockDefinitionRegex);
+    assert(matches.empty);
+
+    matches = "⟨Stuff⟩++".matchFirst(blockDefinitionRegex);
+    assert(matches.empty);
+
+    matches = "⟨Stuff⟩+==".matchFirst(blockDefinitionRegex);
+    assert(matches.empty);
+
+    matches = "⟨Stuff⟩+=+".matchFirst(blockDefinitionRegex);
+    assert(matches.empty);
+}
+
+
 
 
 // Building blocks for the public regexes
 
 private enum validFileNameChars = `[a-zA-Z0-9 _./]`;
-private enum filePath = `(` ~ validFileNameChars ~ `+)`;
+private enum filePath = `file:(?P<fileName>` ~ validFileNameChars ~ `+)`;
 
 unittest
 {
     auto re = ctRegex!("^" ~ filePath ~ "$");
 
     // Just a file name
-    auto input = "file.ext";
-    auto matches = input.matchFirst(re);
+    auto matches = "file:file.ext".matchFirst(re);
     assert(!matches.empty);
-    assert(matches[1] == input);
+    assert(matches["fileName"] == "file.ext");
 
     // File name and path
-    input = "foo/bar.ext";
-    matches = input.matchFirst(re);
+    matches = "file:foo/bar.ext".matchFirst(re);
     assert(!matches.empty);
-    assert(matches[1] == input);
+    assert(matches["fileName"] == "foo/bar.ext");
 
     // Spaces and dots and relative paths are OK
-    input = "../path with spaces/file.with.dotted.name";
-    matches = input.matchFirst(re);
+    matches = "file:../path with spaces/file.with.dotted.name".matchFirst(re);
     assert(!matches.empty);
-    assert(matches[1] == input);
+    assert(matches["fileName"] == "../path with spaces/file.with.dotted.name");
+
+    // Missing initial "file:"
+    matches = "file.ext".matchFirst(re);
+    assert(matches.empty);
+
+    matches = "fil:file.ext".matchFirst(re);
+    assert(matches.empty);
+
+    matches = "files:file.ext".matchFirst(re);
+    assert(matches.empty);
+
+    // Missing file name
+    matches = "file:".matchFirst(re);
+    assert(matches.empty);
 
     // Invalid characters
-    matches = "file*ext".matchFirst(re);
+    matches = "file:file*ext".matchFirst(re);
     assert(matches.empty);
 
-    matches = "file,ext".matchFirst(re);
+    matches = "file:file,ext".matchFirst(re);
     assert(matches.empty);
 
-    matches = "file!ext".matchFirst(re);
+    matches = "file:file!ext".matchFirst(re);
     assert(matches.empty);
 
-    matches = "file?ext".matchFirst(re);
+    matches = "file:file?ext".matchFirst(re);
+    assert(matches.empty);
+
+    matches = "file:file:ext".matchFirst(re);
     assert(matches.empty);
 }
 
-private enum validBlockNameChars = `[\w\s\p{Ps}\p{Pc}\p{Pd}\p{pE}\p{Pi}\p{Pf}\p{Po}\p{Sm}\p{Sc}\p{So}--⟨⟩]`;
-private enum blockName = `(` ~ validBlockNameChars ~ `+)`;
+private enum validBlockNameChars = `[\w\s\p{Ps}\p{Pc}\p{Pd}\p{pE}\p{Pi}\p{Pf}\p{Po}\p{Sm}\p{Sc}\p{Sk}\p{So}--⟨⟩]`;
+private enum validBlockNameCharsButNotSpaces = `[\w\p{Ps}\p{Pc}\p{Pd}\p{pE}\p{Pi}\p{Pf}\p{Po}\p{Sm}\p{Sc}\p{Sk}\p{So}--⟨⟩]`;
+private enum blockName = `(?P<blockName>` ~ validBlockNameChars ~ `*` ~ validBlockNameCharsButNotSpaces ~ `)`;
 
 unittest
 {
@@ -59,33 +137,33 @@ unittest
     auto input = "doStuff";
     auto matches = input.matchFirst(re);
     assert(!matches.empty);
-    assert(matches[1] == input);
+    assert(matches["blockName"] == input);
 
     // Underscores are OK
     input = "do_stuff";
     matches = input.matchFirst(re);
     assert(!matches.empty);
-    assert(matches[1] == input);
+    assert(matches["blockName"] == input);
 
     // Sentence-like name
     input = "Do stuff until end of file. Or maybe not.";
     matches = input.matchFirst(re);
     assert(!matches.empty);
-    assert(matches[1] == input);
+    assert(matches["blockName"] == input);
 
     // Funny characters
     input = `Aproximate π. Ou, em (mal) "português": âprôxímã pí! ‘N'est pas?’`;
     matches = input.matchFirst(re);
     assert(!matches.empty);
-    assert(matches[1] == input);
+    assert(matches["blockName"] == input);
 
     // More funny characters
     input = `$+÷×¥€→∀`;
     matches = input.matchFirst(re);
     assert(!matches.empty);
-    assert(matches[1] == input);
+    assert(matches["blockName"] == input);
 
-    // Name cannot be empty
+    // Block name cannot be empty
     matches = ``.matchFirst(re);
     assert(matches.empty);
 
@@ -109,85 +187,7 @@ unittest
     assert(matches.empty);
 }
 
-private enum validFlagCharacters = `[a-zA-Z0-9_]`;
-private enum oneFlag = validFlagCharacters ~ `+`;
-private enum flagSeparator = `[\s]*,[\s]*`;
-private enum flagList = `([\s]*(?:` ~ oneFlag ~ `(?:` ~ flagSeparator ~ oneFlag ~ `)*)?[\s]*)`;
-
-unittest
-{
-    auto re = ctRegex!("^" ~ flagList ~ "$");
-
-    // Empty list
-    auto input = "";
-    auto matches = input.matchFirst(re);
-    assert(!matches.empty);
-    assert(matches[1] == input);
-
-    // One flag
-    input = "myFlag";
-    matches = input.matchFirst(re);
-    assert(!matches.empty);
-    assert(matches[1] == input);
-
-    // One flag, with underscore and extra spaces
-    input = "   my_flag ";
-    matches = input.matchFirst(re);
-    assert(!matches.empty);
-    assert(matches[1] == input);
-
-    // Two flags, different variations
-    input = "flag1,flag2";
-    matches = input.matchFirst(re);
-    assert(!matches.empty);
-    assert(matches[1] == input);
-
-    input = "flag_1, flag2";
-    matches = input.matchFirst(re);
-    assert(!matches.empty);
-    assert(matches[1] == input);
-
-    input = "  flag_1   , flag_2";
-    matches = input.matchFirst(re);
-    assert(!matches.empty);
-    assert(matches[1] == input);
-
-    input = "flag1,  flag_2   ";
-    matches = input.matchFirst(re);
-    assert(!matches.empty);
-    assert(matches[1] == input);
-
-    // Longer list
-    input = "abc, cDe,xyz   , _foo  ,BAR,_baz   ";
-    matches = input.matchFirst(re);
-    assert(!matches.empty);
-    assert(matches[1] == input);
-
-    // Cannot start by comma
-    input = ",flag";
-    matches = input.matchFirst(re);
-    assert(matches.empty);
-
-    // Comma is required to separate flags
-    input = "flag1 flag2";
-    matches = input.matchFirst(re);
-    assert(matches.empty);
-
-    // Funny characters are invalid
-    input = "flag.";
-    matches = input.matchFirst(re);
-    assert(matches.empty);
-
-    input = "fla&g";
-    matches = input.matchFirst(re);
-    assert(matches.empty);
-
-    input = "flég";
-    matches = input.matchFirst(re);
-    assert(matches.empty);
-}
-
-enum blockDefinitionOperators = `([+]?=)`;
+enum blockDefinitionOperators = `(?P<blockDefOp>[+]?=)`;
 
 unittest
 {
@@ -197,12 +197,12 @@ unittest
     auto input = "=";
     auto matches = input.matchFirst(re);
     assert(!matches.empty);
-    assert(matches[1] == input);
+    assert(matches["blockDefOp"] == input);
 
     input = "+=";
     matches = input.matchFirst(re);
     assert(!matches.empty);
-    assert(matches[1] == input);
+    assert(matches["blockDefOp"] == input);
 
     // Some invalid things
     input = "";
