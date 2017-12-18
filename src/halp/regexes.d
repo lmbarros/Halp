@@ -4,37 +4,35 @@ module halp.regexes;
 
 import std.regex;
 
+public auto blockDefinition = ctRegex!(`[\s]*⟨` ~ blockName ~ `⟩`);
+
+
+// Building blocks for the public regexes
+
 private enum validFileNameChars = `[a-zA-Z0-9 _./]`;
-private enum filePath = `(/` ~ validFileNameChars ~ `+)`;
+private enum filePath = `(` ~ validFileNameChars ~ `+)`;
 
 unittest
 {
     auto re = ctRegex!("^" ~ filePath ~ "$");
 
     // Just a file name
-    auto input = "/file.ext";
+    auto input = "file.ext";
     auto matches = input.matchFirst(re);
     assert(!matches.empty);
     assert(matches[1] == input);
 
     // File name and path
-    input = "/foo/bar.ext";
+    input = "foo/bar.ext";
     matches = input.matchFirst(re);
     assert(!matches.empty);
     assert(matches[1] == input);
 
-    // Spaces and dots are ok
-    input = "/path with spaces/file.with.dotted.name";
+    // Spaces and dots and relative paths are ok
+    input = "../path with spaces/file.with.dotted.name";
     matches = input.matchFirst(re);
     assert(!matches.empty);
     assert(matches[1] == input);
-
-    // Missing initial slash
-    matches = "file.ext".matchFirst(re);
-    assert(matches.empty);
-
-    matches = "foo/bar.ext".matchFirst(re);
-    assert(matches.empty);
 
     // Invalid characters
     matches = "/file*ext".matchFirst(re);
@@ -185,6 +183,45 @@ unittest
     assert(matches.empty);
 
     input = "flég";
+    matches = input.matchFirst(re);
+    assert(matches.empty);
+}
+
+enum blockDefinitionOperators = `([+]?=)`;
+
+unittest
+{
+    auto re = ctRegex!("^" ~ blockDefinitionOperators ~ "$");
+
+    // Valid operators
+    auto input = "=";
+    auto matches = input.matchFirst(re);
+    assert(!matches.empty);
+    assert(matches[1] == input);
+
+    input = "+=";
+    matches = input.matchFirst(re);
+    assert(!matches.empty);
+    assert(matches[1] == input);
+
+    // Some invalid things
+    input = "";
+    matches = input.matchFirst(re);
+    assert(matches.empty);
+
+    input = "=+";
+    matches = input.matchFirst(re);
+    assert(matches.empty);
+
+    input = "+=+";
+    matches = input.matchFirst(re);
+    assert(matches.empty);
+
+    input = "+";
+    matches = input.matchFirst(re);
+    assert(matches.empty);
+
+    input = "obviously invalid";
     matches = input.matchFirst(re);
     assert(matches.empty);
 }
