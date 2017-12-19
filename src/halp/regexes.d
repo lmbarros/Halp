@@ -224,8 +224,8 @@ unittest
     assert(matches.empty);
 }
 
-private enum validBlockNameChars = `[\w\s\p{Ps}\p{Pc}\p{Pd}\p{pE}\p{Pi}\p{Pf}\p{Po}\p{Sm}\p{Sc}\p{Sk}\p{So}--⟨⟩]`;
-private enum validBlockNameCharsButNotSpaces = `[\w\p{Ps}\p{Pc}\p{Pd}\p{pE}\p{Pi}\p{Pf}\p{Po}\p{Sm}\p{Sc}\p{Sk}\p{So}--⟨⟩]`;
+private enum validBlockNameChars = `[\w\s\p{Ps}\p{Pc}\p{Pd}\p{pE}\p{Pi}\p{Pf}\p{Po}\p{Sm}\p{Sc}\p{Sk}\p{So}--⟨⟩…]`;
+private enum validBlockNameCharsButNotSpaces = `[\w\p{Ps}\p{Pc}\p{Pd}\p{pE}\p{Pi}\p{Pf}\p{Po}\p{Sm}\p{Sc}\p{Sk}\p{So}--⟨⟩…]`;
 private enum blockName = `(?P<blockName>` ~ validBlockNameChars ~ `*` ~ validBlockNameCharsButNotSpaces ~ `)`;
 
 unittest
@@ -283,6 +283,10 @@ unittest
     assert(matches.empty);
 
     matches = `⟨foo⟩`.matchFirst(re);
+    assert(matches.empty);
+
+    // Ellipsis are reserved :-)
+    matches = `…`.matchFirst(re);
     assert(matches.empty);
 }
 
