@@ -92,6 +92,81 @@ unittest
     assert(matches["blockDefOp"] == "=");
 }
 
+/// Regex matching a Markdown opening code block.
+public auto mdCodeBlockOpenRegex = ctRegex!("^\\s*```.*$");
+
+unittest
+{
+    auto matches = "```".matchFirst(mdCodeBlockOpenRegex);
+    assert(!matches.empty);
+
+    matches = "  ```lang  ".matchFirst(mdCodeBlockOpenRegex);
+    assert(!matches.empty);
+
+    matches = "``".matchFirst(mdCodeBlockOpenRegex);
+    assert(matches.empty);
+}
+
+/// Regex matching a Markdown closing code block.
+public auto mdCodeBlockCloseRegex = ctRegex!("^(?P<extraCode>.*)```$");
+
+unittest
+{
+    // This is the usual case
+    auto matches = "```".matchFirst(mdCodeBlockCloseRegex);
+    assert(!matches.empty);
+    assert(matches["extraCode"] == "");
+
+    // Some code before ``` is ugly but valid
+    matches = "blah```".matchFirst(mdCodeBlockCloseRegex);
+    assert(!matches.empty);
+    assert(matches["extraCode"] == "blah");
+
+    // Even backticks are valid before the triple backticks
+    matches = "blah````".matchFirst(mdCodeBlockCloseRegex);
+    assert(!matches.empty);
+    assert(matches["extraCode"] == "blah`");
+
+    matches = "`````".matchFirst(mdCodeBlockCloseRegex);
+    assert(!matches.empty);
+    assert(matches["extraCode"] == "``");
+
+    // Some invalid cases
+    matches = "``".matchFirst(mdCodeBlockCloseRegex);
+    assert(matches.empty);
+
+    matches = "```stuff after".matchFirst(mdCodeBlockCloseRegex);
+    assert(matches.empty);
+}
+
+/// Regex matching a block reference.
+public auto blockReferenceRegex =
+    ctRegex!(`^(?P<prefixCode>[^⟨]*)⟨\s*` ~ blockName ~`\s*⟩(?P<postfixCode>.*)$`);
+
+unittest
+{
+    // Simple case
+    auto matches = "⟨Do stuff⟩".matchFirst(blockReferenceRegex);
+    assert(!matches.empty);
+    assert(matches["prefixCode"] == "");
+    assert(matches["postfixCode"] == "");
+    assert(matches["blockName"] == "Do stuff");
+
+    // Indented case (perhaps the typical one)
+    matches = "    ⟨Do stuff⟩".matchFirst(blockReferenceRegex);
+    assert(!matches.empty);
+    assert(matches["prefixCode"] == "    ");
+    assert(matches["postfixCode"] == "");
+    assert(matches["blockName"] == "Do stuff");
+
+    // Both prefix and postfix
+    matches = "    <li>⟨List items⟩</li>".matchFirst(blockReferenceRegex);
+    assert(!matches.empty);
+    assert(matches["prefixCode"] == "    <li>");
+    assert(matches["postfixCode"] == "</li>");
+    assert(matches["blockName"] == "List items");
+}
+
 
 // Building blocks for the public regexes
 
