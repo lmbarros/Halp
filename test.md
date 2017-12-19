@@ -29,7 +29,14 @@ Then, we can actually say hello:
 
 ⟨do stuff⟩ =
 ```D
-writefln("Hey you!");
+writeln("Hey you!");
+```
+
+## Say goodbye
+
+⟨do stuff⟩ +=
+```D
+writeln("Goodbye. Goddbye.");
 ```
 
 ## Departing words
