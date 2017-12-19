@@ -133,6 +133,8 @@ Block[] readBlocks(string fileName)
         }
     }
 
+    // TODO: Improve this: look for block definitions while reading code blocks;
+    //       report error if one is found. (Not foolproof, but good enough.)
     if (state == readingBlockContents)
         die(fileName, lineNumber, "Code block opened at line " ~ to!string(openBlockLineNumber) ~ " is never closed.");
 
