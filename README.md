@@ -1,5 +1,8 @@
 # Halp: An Ad Hoc Literate Programming Tool
 
+A quick and dirty Literate Programming tool hacked for my other project [DUMP](https://github.com/lmbarros/DUMP).
+
+Someday I should rewrite it decently in Halp :-)
 
 ## TODO
 
