@@ -1,10 +1,15 @@
 # Halp: An Ad Hoc Literate Programming Tool
 
-A quick and dirty Literate Programming tool hacked for my other project [DUMP](https://github.com/lmbarros/DUMP).
+A quick and dirty Literate Programming tool hacked over a few nights for my other project [DUMP](https://github.com/lmbarros/DUMP).
 
-Someday I should rewrite it decently in Halp :-)
+Main features:
 
-## TODO
+* Not much tested
+* Gets into infinite loops if there are cycles in source code
+* Source code is ugly and inefficient
+* Reads a Markdown file as input
+* Produces whatever you want as output
+* Requires the use of annoying characters, like ⟨ and ⟩, in the input source
+* When a block is expanded, each expanded line retains the prefix an postfix of the referenced block (a feature stolen from [Mason Staugler's Knot](https://github.com/mqsoh/knot))
 
-* Keep prefix/suffix, as in [Mason Staugler's Knot](https://github.com/mqsoh/knot).
-    * But consider adding an option to skip this behavior.
+Someday I should rewrite Halp it decently in Halp :-)
