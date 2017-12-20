@@ -207,8 +207,25 @@ void expandBlocks(Block[] blocks)
     }
 }
 
-void writeFiles(string root)
+void writeFiles(Block[] blocks, string root)
 {
+    import std.file;
+    import std.path;
+
+    void writeFile(Block block)
+    {
+        assert(block.fileName != "", "This should be a file block");
+        auto file = File(buildPath(root, block.fileName), "w");
+        file.write(block.contents);
+    }
+
+    mkdirRecurse(root);
+
+    foreach (block; blocks)
+    {
+        if (block.fileName != "")
+            writeFile(block);
+    }
 
 }
 
@@ -223,7 +240,7 @@ void main(string[] args)
 
     expandBlocks(blocks);
 
-    writeFiles(args[2]);
+    writeFiles(blocks, args[2]);
 
     writefln("Read %s blocks:", blocks.length);
     foreach (block; blocks)
