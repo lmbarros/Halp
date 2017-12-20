@@ -12,4 +12,4 @@ Main features:
 * Requires the use of annoying characters, like ⟨ and ⟩, in the input source
 * When a block is expanded, each expanded line retains the prefix an postfix of the referenced block (a feature stolen from [Mason Staugler's Knot](https://github.com/mqsoh/knot))
 
-Someday I should rewrite Halp it decently in Halp :-)
+Someday I should rewrite Halp decently in Halp :-)
