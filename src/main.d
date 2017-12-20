@@ -17,6 +17,13 @@ void die(string fileName, int line, string msg)
     exit(1);
 }
 
+void die(string msg)
+{
+    import core.stdc.stdlib: exit;
+    stderr.writeln(msg);
+    exit(1);
+}
+
 Block[] readBlocks(string fileName)
 {
     Block[] blocks = [];
@@ -141,12 +148,82 @@ Block[] readBlocks(string fileName)
     return blocks;
 }
 
+void expandBlocks(Block[] blocks)
+{
+    Block findBlock(string name)
+    {
+        foreach (block; blocks)
+        {
+            if (block.name == name)
+                return block;
+        }
 
-void main()
+        die("Block not found: " ~ name);
+        assert(false, "Can't happen");
+    }
+
+    // This looks very inefficient
+    void expandBlock(Block block)
+    {
+        auto expandedSomething = false;
+
+        while (true)
+        {
+            string newContents;
+            import std.string: lineSplitter;
+
+            expandedSomething = false;
+
+            foreach (line; lineSplitter(block.contents))
+            {
+                auto matches = line.matchFirst(blockReferenceRegex);
+                if (matches.empty)
+                {
+                    newContents ~= line ~ "\n";
+                }
+                else // expand
+                {
+                    expandedSomething = true;
+                    auto newBlock = findBlock(matches["blockName"]);
+                    auto prefix = to!string(matches["prefixCode"]);
+                    auto postfix = to!string(matches["postfixCode"]);
+
+                    foreach (expLine; lineSplitter(newBlock.contents))
+                        newContents ~= prefix ~ expLine ~ postfix ~ "\n";
+                }
+            }
+
+            block.contents = newContents;
+
+            if (!expandedSomething)
+                break;
+        }
+    }
+
+    foreach (block; blocks)
+    {
+        if (block.fileName != "")
+            expandBlock(block);
+    }
+}
+
+void writeFiles(string root)
+{
+
+}
+
+void main(string[] args)
 {
     writeln("Halp: An Ad Hoc Literate Programming Tool");
 
-    auto blocks = readBlocks("test.md");
+    if (args.length != 3)
+        die("Usage: halp <target dir> <input file>");
+
+    auto blocks = readBlocks(args[1]);
+
+    expandBlocks(blocks);
+
+    writeFiles(args[2]);
 
     writefln("Read %s blocks:", blocks.length);
     foreach (block; blocks)
