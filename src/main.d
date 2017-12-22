@@ -236,9 +236,9 @@ void main(string[] args)
     if (args.length != 3)
         die("Usage: halp <target dir> <input file>");
 
-    auto blocks = readBlocks(args[1]);
+    auto blocks = readBlocks(args[2]);
 
     expandBlocks(blocks);
 
-    writeFiles(blocks, args[2]);
+    writeFiles(blocks, args[1]);
 }
