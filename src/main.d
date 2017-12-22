@@ -251,5 +251,5 @@ void main(string[] args)
 
     expandBlocks(blocks);
 
-    writeFiles(blocks, args[1]);
+    writeFiles(blocks, targetDir);
 }
