@@ -1,3 +1,4 @@
+import core.stdc.stdlib: exit;
 import std.conv;
 import std.stdio;
 import std.regex;
@@ -12,14 +13,12 @@ class Block
 
 void die(string fileName, int line, string msg)
 {
-    import core.stdc.stdlib: exit;
     stderr.writefln("%s:%s: %s", fileName, line, msg);
     exit(1);
 }
 
 void die(string msg)
 {
-    import core.stdc.stdlib: exit;
     stderr.writeln(msg);
     exit(1);
 }
@@ -231,12 +230,24 @@ void writeFiles(Block[] blocks, string root)
 
 void main(string[] args)
 {
-    writeln("Halp: An Ad Hoc Literate Programming Tool");
+    import std.getopt;
 
-    if (args.length != 3)
-        die("Usage: halp <target dir> <input file>");
+    writeln("");
 
-    auto blocks = readBlocks(args[2]);
+    string targetDir = "generated_sources";
+
+    auto helpInformation = getopt(
+        args,
+        "targetDir", "Root directory for the generated files", &targetDir);
+
+    if (args.length != 2 || helpInformation.helpWanted)
+    {
+        defaultGetoptPrinter("Halp: An Ad Hoc Literate Programming Tool\n",
+            helpInformation.options);
+        exit(1);
+    }
+
+    auto blocks = readBlocks(args[1]);
 
     expandBlocks(blocks);
 
