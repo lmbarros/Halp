@@ -241,15 +241,4 @@ void main(string[] args)
     expandBlocks(blocks);
 
     writeFiles(blocks, args[2]);
-
-    writefln("Read %s blocks:", blocks.length);
-    foreach (block; blocks)
-    {
-        writefln("    Name: %s", block.name);
-        writefln("    File name: %s", block.fileName);
-        writeln("    Contents:");
-        writeln("--------------------");
-        writeln(block.contents);
-        writeln("--------------------\n");
-    }
 }
