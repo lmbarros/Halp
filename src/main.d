@@ -240,14 +240,18 @@ void main(string[] args)
         args,
         "targetDir", "Root directory for the generated files", &targetDir);
 
-    if (args.length != 2 || helpInformation.helpWanted)
+    if (args.length < 2 || helpInformation.helpWanted)
     {
-        defaultGetoptPrinter("Halp: An Ad Hoc Literate Programming Tool\n",
+        defaultGetoptPrinter("Halp: An Ad Hoc Literate Programming Tool\n"
+            ~ "Usage: halp [options] <input files...>\n",
             helpInformation.options);
         exit(1);
     }
 
-    auto blocks = readBlocks(args[1]);
+    Block[] blocks = [];
+
+    for (auto i = 1; i < args.length; ++i)
+        blocks ~= readBlocks(args[i]);
 
     expandBlocks(blocks);
 
