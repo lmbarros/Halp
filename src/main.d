@@ -28,7 +28,7 @@ Block[] readBlocks(string fileName)
     Block[] blocks = [];
 
     // Talk about a bad interface...
-    Block createOrGetBlock(string op, string blockName, string fileName)
+    Block createOrGetBlock(string op, string blockName, string fileName, string inputFileName, int lineNumber)
     {
         if (blockName != "")
         {
@@ -37,7 +37,7 @@ Block[] readBlocks(string fileName)
                 if (block.name == blockName)
                 {
                     if (op == "=")
-                        block.contents = "";
+                        die(inputFileName, lineNumber, "Block already defined: " ~ blockName);
                     return block;
                 }
             }
@@ -54,7 +54,7 @@ Block[] readBlocks(string fileName)
                 if (block.fileName == fileName)
                 {
                     if (op == "=")
-                        block.contents = "";
+                        die(inputFileName, lineNumber, "File block already defined: " ~ fileName);
                     return block;
                 }
             }
@@ -98,7 +98,7 @@ Block[] readBlocks(string fileName)
                 {
                     auto blockFileName = to!string(matches["fileName"]);
                     auto op = to!string(matches["blockDefOp"]);
-                    block = createOrGetBlock(op, "", blockFileName);
+                    block = createOrGetBlock(op, "", blockFileName, fileName, lineNumber);
                     state = justReadBlockDefinition;
                     break;
                 }
@@ -108,7 +108,7 @@ Block[] readBlocks(string fileName)
                 {
                     auto blockName = to!string(matches["blockName"]);
                     auto op = to!string(matches["blockDefOp"]);
-                    block = createOrGetBlock(op, blockName, "");
+                    block = createOrGetBlock(op, blockName, "", fileName, lineNumber);
                     state = justReadBlockDefinition;
                     break;
                 }
