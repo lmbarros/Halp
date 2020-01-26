@@ -79,6 +79,12 @@ unittest
     assert(matches["fileName"] == "foo.ext");
     assert(matches["blockDefOp"] == "=");
 
+    // File name with dashes
+    matches = "⟨file:foo-bar.ext⟩ =".matchFirst(fileDefinitionRegex);
+    assert(!matches.empty);
+    assert(matches["fileName"] == "foo-bar.ext");
+    assert(matches["blockDefOp"] == "=");
+
     // Appending, more complex path
     matches = "⟨file:../dir/foo.ext⟩ +=".matchFirst(fileDefinitionRegex);
     assert(!matches.empty);
@@ -170,8 +176,8 @@ unittest
 
 // Building blocks for the public regexes
 
-private enum validFileNameChars = `[a-zA-Z0-9 _./]`;
-private enum validFileNameCharsButNotSpace = `[a-zA-Z0-9_./]`;
+private enum validFileNameChars = `[a-zA-Z0-9\- _./]`;
+private enum validFileNameCharsButNotSpace = `[a-zA-Z0-9\-_./]`;
 private enum filePath = `file:\s*(?P<fileName>` ~ validFileNameChars ~ `*` ~ validFileNameCharsButNotSpace ~`)\s*`;
 
 unittest
