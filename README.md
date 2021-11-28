@@ -1,5 +1,14 @@
 # Halp: An Ad Hoc Literate Programming Tool
 
+## Rust rewrite branch
+
+This branch contains a work-in-progress rewrite of Halp to Rust. This is a
+learning exercise, as Halp seemed like an interesting first real-world Rust
+program to write. If I like the results, this may become the official
+implementation.
+
+## Old README contents
+
 A quick and dirty Literate Programming tool hacked over a few nights for my other project [DUMP](https://github.com/lmbarros/DUMP).
 
 Main features:

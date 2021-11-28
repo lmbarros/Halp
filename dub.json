@@ -1,9 +1,0 @@
-{
-	"name": "halp",
-	"authors": [
-		"Leandro Motta Barros"
-	],
-	"description": "An Ad Hoc Literate Programming Tool",
-	"copyright": "Copyright © 2017, Leandro Motta Barros",
-	"license": "GPL-3.0"
-}
