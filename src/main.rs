@@ -1,3 +1,5 @@
+mod halp;
+
 use clap::{App, Arg};
 
 fn main() {
@@ -27,6 +29,6 @@ fn main() {
     println!("Hello from Halp!");
 
     for input in matches.values_of("INPUT").unwrap() {
-        println!("Input file: {}", input)
+        let _blocks = halp::read_blocks(input);
     }
 }
